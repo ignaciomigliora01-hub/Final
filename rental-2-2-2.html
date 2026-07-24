@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Aurelio Ski</title>
+<style>
+  :root{
+    --bone: #FFFFFF;
+    --paper: #FFFFFF;
+    --ink: #111111;
+    --gray: #6B6B6B;
+    --gray-light: #EFEFEF;
+    --line: #E4E4E4;
+    --burgundy: #7A2436;
+    --green: #2FAE72;
+    --green-soft: #E3F5EC;
+    --blue: #4C7EBF;
+    --blue-soft: #E7EEF7;
+    --red: #D14343;
+    --red-soft: #FBEAEA;
+    --amber: #C68A2E;
+    --amber-soft: #FBF1DF;
+    --r-xl: 30px;
+    --r-lg: 22px;
+    --r-sm: 10px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    font-family: -apple-system, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+    background: var(--bone);
+    color: var(--ink);
+  }
+  button, input, select, textarea{ font-family: inherit; }
+  .brand{ color:var(--burgundy); font-weight:800; letter-spacing:-0.02em; }
+  #app{min-height:100vh;display:flex;flex-direction:column;}
+  svg.ic{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;}
+
+  /* ================= PANTALLA DE PRUEBAS (sin ?puesto=) ================= */
+  .gate{
+    min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:var(--bone); padding:24px; gap:26px;
+  }
+  .gate h1{ font-size:1.8rem;margin:0;text-align:center; }
+  .gate .sub{color:var(--gray);margin-top:-14px;font-size:0.9rem;font-weight:500;text-align:center;max-width:340px;}
+  .gate-cards{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;max-width:640px;}
+  .gate-card{
+    background:var(--paper); border:1.5px solid var(--line); border-radius:var(--r-xl);
+    padding:26px 30px; min-width:170px; text-align:center; cursor:pointer;
+  }
+  .gate-card:active{transform:scale(0.97);}
+  .gate-card h3{margin:0;font-size:1.05rem;font-weight:700;}
+  .pin-box{display:flex;flex-direction:column;gap:10px;align-items:center;}
+  .pin-box input{
+    font-size:1.3rem;text-align:center;letter-spacing:4px;
+    padding:12px 14px;border-radius:var(--r-sm);border:2px solid var(--gray-light);width:190px;background:var(--paper);
+  }
+  .pin-box input:focus{outline:none;border-color:var(--ink);}
+  .pin-box button{ background:var(--ink);color:white;border:none;padding:12px 26px;border-radius:var(--r-sm);font-weight:700;font-size:1rem;cursor:pointer; }
+  .pin-error{color:var(--red);font-size:0.85rem;height:16px;font-weight:600;}
+  .lock-msg{color:var(--amber);font-size:0.85rem;font-weight:700;}
+
+  /* ================= PIN screen (puesto=recepcion) ================= */
+  .pin-screen{ min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bone);padding:24px;gap:22px; }
+  .pin-screen h1{ font-size:1.7rem;margin:0; }
+  .pin-screen .sub{color:var(--gray);font-size:0.85rem;font-weight:600;}
+
+  /* ================= Header comun ================= */
+  header.bar{
+    background:var(--paper); padding:16px 18px; display:flex;align-items:center;justify-content:space-between;
+    position:sticky;top:0;z-index:5; border-bottom:1px solid var(--line);
+  }
+  header.bar .title{font-size:1.05rem;font-weight:800;}
+  header.bar .exit{
+    color:var(--gray);font-size:0.8rem;cursor:pointer;font-weight:700;
+    background:var(--gray-light);padding:8px 14px;border-radius:var(--r-sm);
+  }
+  main{flex:1;padding:16px;padding-bottom:110px;max-width:1100px;margin:0 auto;width:100%;}
+
+  /* ================= Dock inferior (Recepcion) ================= */
+  .dock-wrap{position:fixed;bottom:14px;left:0;right:0;display:flex;justify-content:center;z-index:15;padding:0 14px;}
+  .dock{
+    background:var(--ink); border-radius:var(--r-xl); padding:8px; display:flex;gap:4px;position:relative;
+    box-shadow:0 10px 26px rgba(38,35,32,0.28); max-width:520px;width:100%;
+  }
+  .dock-indicator{
+    position:absolute;top:8px;bottom:8px;left:8px;border-radius:18px;background:var(--burgundy);
+    transition:transform .5s cubic-bezier(.4,0,.2,1);z-index:0;
+  }
+  .dock-item{ flex:1;text-align:center;padding:10px 4px;border-radius:18px;cursor:pointer;color:rgba(255,255,255,0.55);position:relative;z-index:1;transition:color .2s ease; }
+  .dock-item .di-label{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.03em;margin-top:2px;}
+  .dock-item.active{color:white;}
+
+  /* ================= Selector superior tipo iPhone (Ropa/Esqui) ================= */
+  .switcher{ display:flex;gap:6px;margin-bottom:14px;position:relative;background:var(--gray-light);border-radius:var(--r-xl);padding:6px; }
+  .switch-indicator{
+    position:absolute;top:6px;bottom:6px;left:6px;border-radius:var(--r-lg);background:var(--ink);
+    transition:transform .5s cubic-bezier(.4,0,.2,1);z-index:0;
+  }
+  .switch-tile{
+    flex:1; background:transparent; border:none; border-radius:var(--r-lg);
+    padding:18px 16px; cursor:pointer; text-align:left; transition:color .2s ease;position:relative;z-index:1;
+  }
+  .switch-tile .st-title{font-size:1.05rem;font-weight:800;display:flex;align-items:center;gap:8px;}
+  .switch-tile .st-count{font-size:0.8rem;color:var(--gray);font-weight:600;margin-top:2px;}
+  .switch-tile.active{ color:white; }
+  .switch-tile.active .st-count{ color:rgba(255,255,255,0.65); }
+
+  /* ================= Panel fijo con scroll horizontal ================= */
+  .panel-fixed{
+    background:var(--paper); border:1.5px solid var(--line); border-radius:var(--r-xl);
+    padding:16px; min-height:340px;
+  }
+  .panel-fixed h2{margin:0 0 12px 0;font-size:0.95rem;font-weight:800;color:var(--gray);text-transform:uppercase;letter-spacing:0.03em;}
+  .hscroll{ display:flex; gap:12px; overflow-x:auto; padding:2px 6px 8px 6px; }
+  @keyframes cardIn{ from{opacity:0;transform:translateY(10px) scale(.97);} to{opacity:1;transform:translateY(0) scale(1);} }
+  .order-card{
+    background:var(--bone); border:1.5px solid var(--line); border-radius:var(--r-sm);
+    padding:16px; min-width:220px; max-width:240px; flex:0 0 auto; display:flex; flex-direction:column; gap:10px;
+    box-shadow:0 3px 10px rgba(17,17,17,0.05); animation:cardIn .32s cubic-bezier(.2,.8,.3,1) both;
+  }
+  .oc-top{ display:flex;justify-content:space-between;align-items:flex-start;gap:10px; }
+  .oc-numbox{
+    width:56px;height:56px;border-radius:16px;color:white;
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.15rem;flex:0 0 auto;
+    background:linear-gradient(135deg, var(--burgundy), #451017);
+    box-shadow:0 6px 14px rgba(122,36,54,0.38), inset 0 1px 0 rgba(255,255,255,0.18);
+    transition:transform .18s ease;
+  }
+  .order-card .oc-name{ font-weight:800; font-size:1.05rem; }
+  .order-card .oc-items{ font-size:0.82rem; color:var(--gray); font-weight:600; line-height:1.5; }
+  .oc-action{
+    border:none;padding:12px 10px;border-radius:var(--r-sm);font-weight:800;font-size:0.85rem;cursor:pointer;color:white;
+    display:flex;align-items:center;justify-content:center;gap:6px;transition:transform .15s ease,filter .15s ease;
+  }
+  .oc-action:active{ transform:scale(0.96); filter:brightness(0.94); }
+  .oc-action.go{background:var(--green);}
+  .oc-action.back{background:var(--blue);}
+  .empty-state{ text-align:center;color:var(--gray);padding:50px 10px;font-size:0.92rem;font-weight:600; }
+
+  /* ================= Recepcion: formularios ================= */
+  .card{background:var(--paper);border-radius:var(--r-lg);padding:20px;margin-bottom:16px;border:1px solid var(--line);}
+  .card h2{margin:0 0 16px 0;font-size:1.02rem;font-weight:800;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+  @media(max-width:680px){.grid2,.grid3{grid-template-columns:1fr 1fr;}}
+  label{font-size:0.7rem;color:var(--gray);font-weight:700;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.04em;}
+  input,select,textarea{
+    width:100%;padding:11px 13px;border-radius:var(--r-sm);border:2px solid var(--gray-light);
+    font-size:0.94rem;background:var(--bone);color:var(--ink);
+  }
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ink);}
+  .field{margin-bottom:12px;}
+  .primary-btn{
+    background:var(--ink);color:white;border:none;padding:14px 20px;border-radius:var(--r-lg);
+    font-weight:800;font-size:0.95rem;cursor:pointer;width:100%;margin-top:6px;transition:transform .15s ease;
+  }
+  .primary-btn:active{ transform:scale(0.98); }
+  .ghost-btn{ background:var(--gray-light);border:none;color:var(--ink);padding:10px 16px;border-radius:var(--r-sm);font-weight:700;font-size:0.82rem;cursor:pointer;transition:transform .15s ease; }
+  .ghost-btn:active{ transform:scale(0.96); }
+  .row-actions{display:flex;gap:8px;flex-wrap:wrap;}
+
+  .product-group{ display:flex;flex-direction:column;gap:8px;margin-bottom:8px; }
+  .equipo-block{ border:1.5px solid var(--line);border-radius:var(--r-sm);padding:10px 12px;margin-bottom:10px; }
+  .equipo-detail{ margin:10px 0 4px 30px; }
+  .equipo-detail .field{ margin-bottom:10px; }
+  .add-check{ display:flex;align-items:center;gap:8px;font-weight:700;font-size:0.82rem;background:var(--gray-light);padding:9px 12px;border-radius:var(--r-sm);text-transform:none;color:var(--ink);margin-top:2px; }
+  .add-check input{ width:19px;height:19px;accent-color:var(--ink); }
+  .product-row{
+    display:flex;align-items:center;gap:10px;background:var(--bone);border:1.5px solid var(--line);
+    border-radius:var(--r-sm);padding:9px 12px;
+  }
+  .product-row input[type=checkbox]{ width:20px;height:20px;flex:0 0 auto;accent-color:var(--ink); }
+  .product-row .pr-label{ flex:1;font-weight:700;font-size:0.9rem; }
+  .product-row .pr-price{ width:100px;padding:7px 9px;font-size:0.85rem; }
+  .product-row .price-ropa{ width:92px;flex:0 0 92px;padding:8px 9px;font-size:0.85rem; }
+  .product-row .qty-ropa{ width:50px;flex:0 0 50px;padding:8px 6px;font-size:0.85rem;text-align:center; }
+
+  .total-circle{
+    width:150px;height:150px;border-radius:50%;background:var(--ink);color:white;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;margin:14px auto 6px auto;
+    text-align:center;
+  }
+  .total-circle .tc-label{font-size:0.62rem;text-transform:uppercase;letter-spacing:0.05em;color:rgba(255,255,255,0.6);font-weight:700;}
+  .total-circle .tc-amount{font-size:1.3rem;font-weight:800;margin-top:2px;}
+  .total-sub{ text-align:center;color:var(--gray);font-size:0.78rem;font-weight:600;margin-bottom:10px; }
+
+  /* Tickets recepcion (por devolver / historial) */
+  .ticket{ background:var(--paper);border:1px solid var(--line);border-radius:var(--r-sm);padding:14px 16px;margin-bottom:10px; }
+  .ticket .t-top{ display:flex;justify-content:space-between;align-items:center;margin-bottom:8px; }
+  .ticket .t-name{ font-weight:800;font-size:1rem; }
+  .ticket .t-meta{ font-size:0.78rem;color:var(--gray);font-weight:600; }
+  .item-row{ display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--gray-light); }
+  .item-row .ir-label{ font-size:0.86rem;font-weight:700; }
+  .badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:0.68rem;font-weight:800;}
+  .badge.pend{background:var(--amber-soft);color:var(--amber);}
+  .badge.entregado{background:var(--green-soft);color:var(--green);}
+  .badge.devuelto{background:var(--blue-soft);color:var(--blue);}
+  .badge.roto{background:var(--red-soft);color:var(--red);}
+  .badge.perdido{background:var(--amber-soft);color:var(--amber);}
+  .mini-btn{ border:none;padding:7px 12px;border-radius:var(--r-sm);font-weight:800;font-size:0.72rem;cursor:pointer;color:white;background:var(--blue); }
+
+  .stat-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+  .hist-head{ display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap; }
+  .stat{ background:var(--paper);border:1px solid var(--line);border-radius:var(--r-lg);padding:14px 18px;flex:1;min-width:120px; }
+  .stat .n{font-size:1.4rem;color:var(--ink);font-weight:800;}
+  .stat .l{font-size:0.68rem;color:var(--gray);text-transform:uppercase;font-weight:700;}
+
+  table{width:100%;border-collapse:collapse;font-size:0.82rem;}
+  th{text-align:left;color:var(--gray);font-size:0.68rem;text-transform:uppercase;padding:9px 6px;border-bottom:2px solid var(--line);font-weight:700;}
+  td{padding:9px 6px;border-bottom:1px solid var(--gray-light);}
+
+  /* ================= Modales ================= */
+  .modal-bg{position:fixed;inset:0;background:rgba(38,35,32,0.5);display:flex;align-items:center;justify-content:center;z-index:20;padding:16px;}
+  .modal{background:var(--paper);border-radius:var(--r-xl);padding:24px;max-width:440px;width:100%;max-height:85vh;overflow-y:auto;}
+  .modal h3{margin-top:0;font-weight:800;}
+  .modal .row-actions{margin-top:16px;}
+  .piece-row{ display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 0;border-top:1px solid var(--gray-light); }
+  .piece-row .pz-label{font-weight:700;font-size:0.88rem;flex:1;}
+  .tri-toggle{ display:flex;gap:4px;background:var(--gray-light);border-radius:var(--r-sm);padding:3px; }
+  .tri-opt{ padding:6px 10px;border-radius:8px;font-size:0.72rem;font-weight:800;cursor:pointer;color:var(--gray); }
+  .tri-opt.sel-bueno.on{background:var(--green);color:white;}
+  .tri-opt.sel-roto.on{background:var(--red);color:white;}
+  .tri-opt.sel-perdido.on{background:var(--amber);color:white;}
+
+  .toast{
+    position:fixed;bottom:96px;left:50%;transform:translateX(-50%);
+    background:var(--ink);color:white;padding:12px 22px;border-radius:30px;font-size:0.85rem;
+    box-shadow:0 6px 18px rgba(0,0,0,0.2);z-index:30;font-weight:600;
+  }
+  .warn-banner{
+    background:var(--amber-soft);color:var(--amber);font-weight:700;font-size:0.78rem;
+    padding:10px 14px;border-radius:var(--r-sm);margin-bottom:14px;
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+/* ============================================================
+   CATÁLOGO DE PRODUCTOS
+   ============================================================ */
+const ROPA_ITEMS = [
+  {key:'ropa_completa', label:'Ropa completa', price:40000},
+  {key:'casco', label:'Casco', price:15000},
+  {key:'antiparras', label:'Antiparras', price:15000},
+  {key:'interitos', label:'Interitos + guantes + botas pre-ski', price:45000},
+];
+
+/* Prendas sueltas: se seleccionan por separado (dentro de "Prenda por separado") */
+const PRENDAS_SUELTAS = [
+  {key:'campera', label:'Campera', price:15000},
+  {key:'pantalon', label:'Pantalón', price:15000},
+  {key:'guantes', label:'Guantes', price:15000},
+  {key:'botas_preski', label:'Botas pre-ski', price:20000},
+];
+
+/* Tarifario de equipos de Ski/Snowboard (Junior / Estándar / Intermedio / Gama alta) */
+const NIVEL_LABELS = {junior:'Junior', estandar:'Estándar', intermedio:'Intermedio', alta_gama:'Gama alta'};
+const TARIFAS_EQUIPO = {
+  junior:     {1:45000, 3:128000, 7:283000},
+  estandar:   {1:58000, 3:165000, 7:365000},
+  intermedio: {1:68000, 3:193000, 7:428000},
+  alta_gama:  {1:78000, 3:222000, 7:492000},
+};
+const BASTON_DIA = 15000;
+function precioEquipo(nivel, dias, modalidad){
+  const base = (TARIFAS_EQUIPO[nivel]||{})[dias] || 0;
+  if(modalidad==='botas') return Math.round(base*0.5);
+  if(modalidad==='tabla') return Math.round(base*0.7);
+  return base;
+}
+
+/* Tarifario de clases */
+const TARIFAS_CLASE_PARTICULAR = {
+  '2': {'1-2':190000, '3':230000, '4':270000},
+  '4': {'1-2':328000, '3':368000, '4':408000},
+  '6': {'1-2':480000, '3':520000, '4':560000},
+};
+const ADICIONAL_PERSONA = 40000;
+const CLASE_COLECTIVA_PRECIO = 100000;
+
+// Los PIN reales NUNCA están escritos acá — solo su hash SHA-256.
+// Así, aunque alguien lea este código, no puede ver la clave.
+const PIN_HASHES = {
+  recepcion: 'a427625182ba13531dde2981ae84a8018689dd37a03731fbf8ff6b92aa19e913',
+  ropa:      'f652f5c87c84f33899f9be3b2f62607ce5b61c68cac1f70bb4cdbb40d79b6904',
+  esqui:     'f652f5c87c84f33899f9be3b2f62607ce5b61c68cac1f70bb4cdbb40d79b6904',
+};
+async function sha256(text){
+  const enc = new TextEncoder().encode(text);
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+let storageOK = true;
+
+let state = {
+  puesto: null, // 'recepcion' | 'ropa' | 'esqui' | null (pantalla de pruebas)
+  orders: [],
+  loading: true,
+  toast: null,
+  unlocked: false,
+  pinAttempt: '',
+  pinError: false,
+  lock: { attemptsLeft: 5, phase: 0, lockUntil: 0 },
+  recepTab: 'nuevo',
+  stationTab: 'pedidos', // pedidos | devolver
+  logoTaps: 0,
+  showRecepBtn: false,
+  numeroCounter: 0,
+};
+
+/* ============================================================
+   ICONOS (sin emojis, trazos simples)
+   ============================================================ */
+function icon(name){
+  const paths = {
+    check: '<path d="M20 6 9 17l-5-5"/>',
+    undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    list: '<path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3" cy="6" r="1"/><circle cx="3" cy="12" r="1"/><circle cx="3" cy="18" r="1"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>',
+    file: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/>',
+    alert: '<path d="M10.3 3.9 1.8 18a1.5 1.5 0 0 0 1.3 2.2h17.8a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0Z"/><path d="M12 9v4M12 17h.01"/>',
+    close: '<path d="M18 6 6 18M6 6l12 12"/>',
+  };
+  return `<svg class="ic" viewBox="0 0 24 24">${paths[name]||''}</svg>`;
+}
+
+/* ============================================================
+   UTILIDADES
+   ============================================================ */
+function uid(){ return 'p' + Math.random().toString(36).slice(2,8); }
+function nowISO(){ return new Date().toISOString(); }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function fmtTime(iso){ if(!iso) return '-'; return new Date(iso).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}); }
+function money(n, cur){ const c = cur||'ARS'; const sym = c==='USD'?'US$':c==='BRL'?'R$':'$'; return sym+' '+Number(n||0).toLocaleString('es-AR'); }
+function itemLabel(key){ const f=ROPA_ITEMS.find(i=>i.key===key)||PRENDAS_SUELTAS.find(i=>i.key===key); return f?f.label:key; }
+function estadoLabel(e){ return {pendiente:'Pendiente',entregado:'Entregado',devuelto:'Devuelto'}[e]||e; }
+function condLabel(c){ return {roto:'Roto',perdido:'Perdido',bueno:'Bueno'}[c]||''; }
+
+/* ============================================================
+   STORAGE — Firebase Realtime Database
+   (window.storage solo existe DENTRO de Claude; en GitHub Pages
+   hace falta una base de datos real. Completá tu config abajo.)
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyAK_UktH_YNFDtQ9P1lVMsgWXo5CxF11m8",
+  authDomain: "aurelio-ski.firebaseapp.com",
+  databaseURL: "https://aurelio-ski-default-rtdb.firebaseio.com",
+  projectId: "aurelio-ski",
+};
+let db = null;
+try{
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.database();
+}catch(e){ storageOK = false; }
+
+async function loadOrders(){
+  if(!db){ storageOK=false; state.loading=false; render(); return; }
+  db.ref('orders').on('value', snap=>{
+    state.orders = snap.val() || [];
+    state.loading = false;
+    storageOK = true;
+    render();
+  }, err=>{ storageOK=false; state.loading=false; render(); });
+}
+async function saveOrders(){
+  if(!db) return;
+  try{ await db.ref('orders').set(state.orders); }
+  catch(e){ storageOK = false; }
+}
+async function loadLock(puesto){
+  if(!db) return;
+  try{
+    const snap = await db.ref('lock/'+puesto).once('value');
+    if(snap.exists()) state.lock = snap.val();
+  }catch(e){ /* usa default en memoria */ }
+}
+async function saveLock(puesto){
+  if(!db) return;
+  try{ await db.ref('lock/'+puesto).set(state.lock); }catch(e){}
+}
+
+function showToast(msg){ state.toast = msg; render(); setTimeout(()=>{ state.toast=null; render(); }, 2200); }
+
+async function nextNumero(){
+  if(!db){
+    state.numeroCounter = state.numeroCounter>=99 ? 1 : state.numeroCounter+1;
+    return state.numeroCounter;
+  }
+  try{
+    const res = await db.ref('counter').transaction(cur=>(cur||0)>=99 ? 1 : (cur||0)+1);
+    return res.snapshot.val();
+  }catch(e){
+    state.numeroCounter = state.numeroCounter>=99 ? 1 : state.numeroCounter+1;
+    return state.numeroCounter;
+  }
+}
+
+
+/* ============================================================
+   ROUTING por URL (?puesto=recepcion|ropa|esqui)
+   ============================================================ */
+function initRouting(){
+  const params = new URLSearchParams(location.search);
+  state.puesto = params.get('puesto');
+}
+
+/* ============================================================
+   RENDER PRINCIPAL
+   ============================================================ */
+function render(){
+  const app = document.getElementById('app');
+  if(!state.puesto){ app.innerHTML = renderTestGate(); attachTestGateEvents(); return; }
+  if(['recepcion','ropa','esqui'].includes(state.puesto) && !state.unlocked){ app.innerHTML = renderPinScreen(); attachPinEvents(); return; }
+  if(state.loading){ app.innerHTML = `<div class="pin-screen"><h1 class="brand">Aurelio Ski</h1><div class="sub">Cargando...</div></div>`; return; }
+
+  if(state.puesto === 'recepcion'){ app.innerHTML = renderRecepcion(); attachRecepcionEvents(); }
+  else { app.innerHTML = renderEstacion(state.puesto); attachEstacionEvents(state.puesto); }
+
+  if(!storageOK){
+    const warn = document.createElement('div');
+    warn.style.cssText='position:fixed;top:0;left:0;right:0;background:#C68A2E;color:white;text-align:center;font-size:0.75rem;font-weight:700;padding:6px;z-index:50;';
+    warn.textContent = 'Sin conexión con la base de datos. Revisá el wifi o que se haya completado la configuración de Firebase en el código.';
+    app.prepend(warn);
+  }
+  if(state.toast){ const t=document.createElement('div'); t.className='toast'; t.textContent=state.toast; app.appendChild(t); }
+}
+
+/* ============================================================
+   PANTALLA DE PRUEBAS (sin ?puesto=)
+   ============================================================ */
+function renderTestGate(){
+  return `
+  <div class="gate">
+    <h1 class="brand" id="logoTap">Aurelio Ski</h1>
+    <div class="gate-cards">
+      <div class="gate-card" data-role="ropa"><h3>Ropa</h3></div>
+      <div class="gate-card" data-role="esqui"><h3>Ski</h3></div>
+      ${state.showRecepBtn ? `<div class="gate-card" data-role="recepcion"><h3>Recepción</h3></div>` : ''}
+    </div>
+  </div>`;
+}
+function attachTestGateEvents(){
+  document.getElementById('logoTap').addEventListener('click', ()=>{
+    state.logoTaps++;
+    if(state.logoTaps>=5){ state.showRecepBtn=true; }
+    render();
+  });
+  document.querySelectorAll('.gate-card').forEach(c=>{
+    c.addEventListener('click', ()=>{ location.href = location.pathname + '?puesto=' + c.dataset.role; });
+  });
+}
+
+/* ============================================================
+   PIN SCREEN (recepcion)
+   ============================================================ */
+function renderPinScreen(){
+  const now = Date.now();
+  const locked = state.lock.lockUntil > now;
+  const secsLeft = locked ? Math.ceil((state.lock.lockUntil-now)/1000) : 0;
+  const label = {recepcion:'Recepción', ropa:'Ropa', esqui:'Ski'}[state.puesto] || '';
+  return `
+  <div class="pin-screen">
+    <h1 class="brand">Aurelio Ski</h1>
+    <div class="sub">Acceso de ${label}</div>
+    <div class="pin-box">
+      <input id="pinInput" type="password" placeholder="Clave" ${locked?'disabled':''} value="${state.pinAttempt}">
+      <button id="pinGo" ${locked?'disabled':''}>Entrar</button>
+      <div class="pin-error">${state.pinError && !locked ? 'Clave incorrecta' : ''}</div>
+      ${locked ? `<div class="lock-msg" id="lockMsg">Bloqueado. Probá de nuevo en ${secsLeft}s</div>` : `<div class="sub" style="margin-top:0;font-size:0.75rem;">Intentos restantes: ${state.lock.attemptsLeft}</div>`}
+    </div>
+  </div>`;
+}
+function attachPinEvents(){
+  const now = Date.now();
+  const locked = state.lock.lockUntil > now;
+  if(locked){
+    setTimeout(render, 1000);
+    return;
+  }
+  const pinInput = document.getElementById('pinInput');
+  if(pinInput){
+    pinInput.focus();
+    pinInput.addEventListener('input', e=>{ state.pinAttempt = e.target.value; });
+    pinInput.addEventListener('keydown', e=>{ if(e.key==='Enter') tryPin(); });
+  }
+  document.getElementById('pinGo').addEventListener('click', tryPin);
+}
+async function tryPin(){
+  const attemptHash = await sha256(state.pinAttempt);
+  if(attemptHash === PIN_HASHES[state.puesto]){
+    state.unlocked = true;
+    state.lock = { attemptsLeft: 5, phase: 0, lockUntil: 0 };
+    await saveLock(state.puesto);
+    state.loading = true;
+    render();
+    await loadOrders();
+    return;
+  }
+  state.pinError = true;
+  state.lock.attemptsLeft--;
+  if(state.lock.attemptsLeft <= 0){
+    const lockMs = state.lock.phase===0 ? 60*1000 : 5*60*1000;
+    state.lock.lockUntil = Date.now() + lockMs;
+    state.lock.phase = 1;
+    state.lock.attemptsLeft = 3;
+  }
+  await saveLock(state.puesto);
+  state.pinAttempt = '';
+  render();
+}
+
+/* ============================================================
+   RECEPCIÓN
+   ============================================================ */
+function renderRecepcion(){
+  const tabs = [
+    {k:'nuevo', l:'Nueva venta', icon:'plus'},
+    {k:'pendientes', l:'Por devolver', icon:'clock'},
+    {k:'historial', l:'Historial', icon:'file'},
+  ];
+  return `
+  <header class="bar">
+    <div class="title brand">Aurelio Ski <span style="color:var(--gray);font-weight:700;font-size:0.8rem;"> · Recepción</span></div>
+    <div class="exit" id="exitBtn">salir</div>
+  </header>
+  <main>
+    ${state.recepTab==='nuevo' ? renderNuevaVenta() : ''}
+    ${state.recepTab==='pendientes' ? renderPendientesRecep() : ''}
+    ${state.recepTab==='historial' ? renderHistorial() : ''}
+  </main>
+  <div class="dock-wrap"><div class="dock" id="dockEl">
+    <div class="dock-indicator" id="dockIndicator"></div>
+    ${tabs.map(t=>`<div class="dock-item ${state.recepTab===t.k?'active':''}" data-tab="${t.k}">${icon(t.icon)}<div class="di-label">${t.l}</div></div>`).join('')}
+  </div></div>`;
+}
+
+function renderNuevaVenta(){
+  return `
+  <div class="card">
+    <h2>Datos del cliente</h2>
+    <div class="grid2">
+      <div class="field"><label>Nombre</label><input id="f_nombre" placeholder="Nombre"></div>
+      <div class="field"><label>Apellido</label><input id="f_apellido" placeholder="Apellido"></div>
+    </div>
+    <div class="field"><label>Fecha de venta</label><input id="f_fecha" type="date" value="${todayStr()}"></div>
+  </div>
+
+  <div class="card">
+    <h2>Equipos de Ski / Snowboard</h2>
+    ${['ski','snowboard'].map(tipo=>`
+      <div class="equipo-block" data-tipo="${tipo}">
+        <div class="product-row">
+          <input type="checkbox" class="chk-equipo" data-tipo="${tipo}">
+          <div class="pr-label">${tipo==='ski'?'Ski':'Snowboard'}</div>
+        </div>
+        <div class="equipo-detail" data-tipo="${tipo}" style="display:none;">
+          <div class="grid3">
+            <div class="field"><label>Nivel</label>
+              <select class="eq-nivel" data-tipo="${tipo}">
+                ${Object.entries(NIVEL_LABELS).map(([k,l])=>`<option value="${k}">${l}</option>`).join('')}
+              </select>
+            </div>
+            <div class="field"><label>Días</label>
+              <select class="eq-dias" data-tipo="${tipo}">
+                <option value="1">1 día</option>
+                <option value="3">3 días</option>
+                <option value="7">7 días</option>
+              </select>
+            </div>
+            <div class="field"><label>Modalidad</label>
+              <select class="eq-modalidad" data-tipo="${tipo}">
+                <option value="completo">Equipo completo</option>
+                <option value="botas">Solo botas ${tipo==='ski'?'ski':'snow'}</option>
+                <option value="tabla">Solo ${tipo==='ski'?'esquís':'tabla'}</option>
+              </select>
+            </div>
+          </div>
+          <div class="field"><label>Precio</label><input type="number" class="eq-precio" data-tipo="${tipo}" min="0"></div>
+          <label class="add-check"><input type="checkbox" class="eq-add" data-tipo="${tipo}"> + Bastones $${BASTON_DIA.toLocaleString('es-AR')}/día</label>
+        </div>
+      </div>`).join('')}
+  </div>
+
+  <div class="card">
+    <h2>Ropa y accesorios</h2>
+    <div class="sub" style="color:var(--gray);font-size:0.72rem;font-weight:600;margin-bottom:8px;">Si es para varias personas, subí la cantidad — no hace falta tildar uno por uno.</div>
+    <div class="product-group">
+      ${ROPA_ITEMS.map(p=>`
+        <div class="product-row">
+          <input type="checkbox" class="chk-ropa" data-key="${p.key}">
+          <div class="pr-label">${p.label}</div>
+          <input type="number" class="price-ropa" data-key="${p.key}" value="${p.price}" min="0">
+          <input type="number" class="qty-ropa" data-key="${p.key}" value="1" min="1" title="Cantidad">
+        </div>`).join('')}
+    </div>
+    <div class="sub" style="color:var(--gray);font-size:0.78rem;font-weight:700;margin:14px 0 8px;text-transform:uppercase;letter-spacing:0.03em;">Prenda por separado</div>
+    <div class="product-group">
+      ${PRENDAS_SUELTAS.map(p=>`
+        <div class="product-row">
+          <input type="checkbox" class="chk-ropa" data-key="${p.key}">
+          <div class="pr-label">${p.label}</div>
+          <input type="number" class="price-ropa" data-key="${p.key}" value="${p.price}" min="0">
+          <input type="number" class="qty-ropa" data-key="${p.key}" value="1" min="1" title="Cantidad">
+        </div>`).join('')}
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Clases</h2>
+    <div class="product-row">
+      <input type="checkbox" id="chk_clase_particular">
+      <div class="pr-label">Clase particular · sin equipo / sin ropa</div>
+    </div>
+    <div class="equipo-detail" id="claseParticularDetail" style="display:none;">
+      <div class="grid3">
+        <div class="field"><label>Duración</label>
+          <select id="clase_duracion">
+            <option value="2">2 horas</option>
+            <option value="4">4 horas</option>
+            <option value="6">6 horas</option>
+          </select>
+        </div>
+        <div class="field"><label>Personas</label>
+          <select id="clase_personas">
+            <option value="1-2">1 o 2 personas</option>
+            <option value="3">3 personas</option>
+            <option value="4">4 personas</option>
+          </select>
+        </div>
+        <div class="field"><label>Adicionales</label><input type="number" id="clase_adicionales" min="0" value="0"></div>
+      </div>
+      <div class="sub" style="color:var(--gray);font-size:0.75rem;font-weight:600;">Cada persona adicional suma $${ADICIONAL_PERSONA.toLocaleString('es-AR')}.</div>
+    </div>
+    <div class="product-row" style="margin-top:10px;">
+      <input type="checkbox" id="chk_clase_colectiva">
+      <div class="pr-label">Clase colectiva 2h · con equipo, sin ropa</div>
+    </div>
+    <div class="equipo-detail" id="claseColectivaDetail" style="display:none;">
+      <div class="field"><label>Tipo de equipo que se lleva</label>
+        <select id="clase_colectiva_equipo">
+          <option value="ski">Ski</option>
+          <option value="snowboard">Snowboard</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Pago</h2>
+    <div class="grid3">
+      <div class="field"><label>Moneda</label>
+        <select id="f_moneda">
+          <option value="ARS">Peso Argentino</option>
+          <option value="USD">Dólar</option>
+          <option value="BRL">Real</option>
+        </select>
+      </div>
+      <div class="field" id="cambioField"><label id="cambioLabel">Tipo de cambio a ARS</label><input id="f_cambio" type="number" placeholder="1" min="0"></div>
+      <div class="field"><label>Descuento %</label><input id="f_descuento" type="number" placeholder="0" min="0" max="100"></div>
+    </div>
+    <div class="grid3">
+      <div class="field"><label>Medio de pago</label>
+        <select id="f_pago"><option value="efectivo">Efectivo</option><option value="tarjeta">Tarjeta</option><option value="transferencia">Transferencia</option></select>
+      </div>
+      <div class="field"><label>Promotor</label><input id="f_promotor" placeholder="Nombre"></div>
+      <div class="field"><label>% Comisión</label><input id="f_comision" type="number" placeholder="0" min="0"></div>
+    </div>
+    <div class="field"><label>Hora límite de devolución</label><input id="f_horalimite" type="time"></div>
+
+    <div class="total-circle" id="totalCircle">
+      <div class="tc-label">Total</div>
+      <div class="tc-amount" id="totalAmount">$ 0</div>
+    </div>
+    <div class="total-sub" id="totalSub">en pesos argentinos</div>
+
+    <button class="primary-btn" id="crearVentaBtn">${icon('check')} Crear ticket y enviar a estaciones</button>
+  </div>`;
+}
+
+function refreshEquipoPrecio(tipo){
+  const nivel = document.querySelector(`.eq-nivel[data-tipo="${tipo}"]`).value;
+  const dias = Number(document.querySelector(`.eq-dias[data-tipo="${tipo}"]`).value);
+  const modalidad = document.querySelector(`.eq-modalidad[data-tipo="${tipo}"]`).value;
+  document.querySelector(`.eq-precio[data-tipo="${tipo}"]`).value = precioEquipo(nivel, dias, modalidad);
+}
+function sumEquipoPrecio(tipo){
+  const chk = document.querySelector(`.chk-equipo[data-tipo="${tipo}"]`);
+  if(!chk || !chk.checked) return 0;
+  let sum = Number(document.querySelector(`.eq-precio[data-tipo="${tipo}"]`).value)||0;
+  const bastonChk = document.querySelector(`.eq-add[data-tipo="${tipo}"]`);
+  if(bastonChk && bastonChk.checked){
+    const dias = Number(document.querySelector(`.eq-dias[data-tipo="${tipo}"]`).value)||1;
+    sum += BASTON_DIA*dias;
+  }
+  return sum;
+}
+function precioClaseParticular(){
+  const chk = document.getElementById('chk_clase_particular');
+  if(!chk || !chk.checked) return 0;
+  const dur = document.getElementById('clase_duracion').value;
+  const pers = document.getElementById('clase_personas').value;
+  const adicionales = Number(document.getElementById('clase_adicionales').value)||0;
+  const base = (TARIFAS_CLASE_PARTICULAR[dur]||{})[pers] || 0;
+  return base + adicionales*ADICIONAL_PERSONA;
+}
+function precioClaseColectiva(){
+  const chk = document.getElementById('chk_clase_colectiva');
+  return (chk && chk.checked) ? CLASE_COLECTIVA_PRECIO : 0;
+}
+function equipoLabel(tipo, nivel, dias, modalidad){
+  const tipoLabel = tipo==='ski' ? 'Ski' : 'Snowboard';
+  const modLabel = modalidad==='botas' ? (tipo==='ski'?'solo botas ski':'solo botas snow') : modalidad==='tabla' ? (tipo==='ski'?'solo esquís':'solo tabla') : 'equipo completo';
+  return `${tipoLabel} ${NIVEL_LABELS[nivel]} · ${modLabel} · ${dias} día${dias>1?'s':''}`;
+}
+function leerEquipoItems(tipo){
+  const chk = document.querySelector(`.chk-equipo[data-tipo="${tipo}"]`);
+  if(!chk || !chk.checked) return [];
+  const nivel = document.querySelector(`.eq-nivel[data-tipo="${tipo}"]`).value;
+  const dias = Number(document.querySelector(`.eq-dias[data-tipo="${tipo}"]`).value);
+  const modalidad = document.querySelector(`.eq-modalidad[data-tipo="${tipo}"]`).value;
+  const precio = Number(document.querySelector(`.eq-precio[data-tipo="${tipo}"]`).value)||0;
+  const items = [{id:uid(), cat:'esqui', key:`equipo_${tipo}`, label:equipoLabel(tipo,nivel,dias,modalidad), precio, estado:'pendiente', condicion:null, danoDetalle:''}];
+  const bastonChk = document.querySelector(`.eq-add[data-tipo="${tipo}"]`);
+  if(bastonChk && bastonChk.checked){
+    items.push({id:uid(), cat:'esqui', key:`bastones_${tipo}`, label:`Bastones · ${dias} día${dias>1?'s':''}`, precio: BASTON_DIA*dias, estado:'pendiente', condicion:null, danoDetalle:''});
+  }
+  return items;
+}
+function leerClaseParticular(){
+  const chk = document.getElementById('chk_clase_particular');
+  if(!chk || !chk.checked) return null;
+  const dur = document.getElementById('clase_duracion').value;
+  const pers = document.getElementById('clase_personas').value;
+  const adicionales = Number(document.getElementById('clase_adicionales').value)||0;
+  const persLabel = pers==='1-2' ? '1-2 personas' : `${pers} personas`;
+  const label = `Clase particular ${dur}h · ${persLabel}${adicionales>0?` + ${adicionales} adicionales`:''}`;
+  return {id:uid(), cat:'clase', key:'clase_particular', label, precio: precioClaseParticular(), estado:'devuelto', condicion:'bueno', danoDetalle:''};
+}
+function leerClaseColectiva(){
+  const chk = document.getElementById('chk_clase_colectiva');
+  if(!chk || !chk.checked) return null;
+  const eqSel = document.getElementById('clase_colectiva_equipo');
+  const equipoLbl = eqSel && eqSel.value==='snowboard' ? 'Snowboard' : 'Ski';
+  return {id:uid(), cat:'clase', key:'clase_colectiva', label:`Clase colectiva 2h · equipo de ${equipoLbl} · sin ropa`, precio: CLASE_COLECTIVA_PRECIO, estado:'devuelto', condicion:'bueno', danoDetalle:''};
+}
+
+const MONEDA_NOMBRE = {ARS:'peso argentino', USD:'dólar', BRL:'real'};
+function actualizarUIPago(){
+  const moneda = document.getElementById('f_moneda').value;
+  const cambioField = document.getElementById('cambioField');
+  const cambioLabel = document.getElementById('cambioLabel');
+  if(moneda==='ARS'){
+    cambioField.style.display = 'none';
+    document.getElementById('f_cambio').value = 1;
+  } else {
+    cambioField.style.display = '';
+    cambioLabel.textContent = `Cuántos pesos vale 1 ${MONEDA_NOMBRE[moneda]}`;
+  }
+}
+function calcularTotal(){
+  let subtotal = 0;
+  document.querySelectorAll('.chk-ropa:checked').forEach(chk=>{
+    const price = Number(document.querySelector(`.price-ropa[data-key="${chk.dataset.key}"]`).value)||0;
+    const qty = Number(document.querySelector(`.qty-ropa[data-key="${chk.dataset.key}"]`).value)||1;
+    subtotal += price*qty;
+  });
+  subtotal += sumEquipoPrecio('ski') + sumEquipoPrecio('snowboard');
+  subtotal += precioClaseParticular() + precioClaseColectiva();
+  const descuentoPct = Math.min(Number(document.getElementById('f_descuento').value)||0, 100);
+  const totalARS = Math.max(subtotal - subtotal*descuentoPct/100, 0);
+  const moneda = document.getElementById('f_moneda').value;
+  const cambio = moneda==='ARS' ? 1 : (Number(document.getElementById('f_cambio').value)||0);
+  document.getElementById('totalAmount').textContent = money(totalARS, 'ARS');
+  if(moneda==='ARS'){
+    document.getElementById('totalSub').textContent = 'en pesos argentinos';
+  } else if(cambio>0){
+    const totalMoneda = totalARS / cambio;
+    document.getElementById('totalSub').textContent = `Cobrale ${money(totalMoneda, moneda)} · ${MONEDA_NOMBRE[moneda]} a $${cambio.toLocaleString('es-AR')}`;
+  } else {
+    document.getElementById('totalSub').textContent = 'Falta poner el tipo de cambio';
+  }
+
+  actualizarUIPago();
+}
+
+function renderPendientesRecep(){
+  const activos = state.orders.filter(o=>!o.cerrado);
+  if(activos.length===0) return emptyState('No hay pedidos pendientes de devolver');
+  return activos.map(o=>`
+    <div class="ticket">
+      <div class="t-top">
+        <div class="t-name">#${o.numero} · ${o.nombre} ${o.apellido}</div>
+      </div>
+      <div class="t-meta">Límite: ${o.horalimite || 'sin definir'}</div>
+      ${o.items.map(it=>`
+        <div class="item-row">
+          <div class="ir-label">${it.label}</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            ${it.cat==='clase' ? `<span class="badge devuelto">Servicio</span>` : badge(it.estado, it.condicion)}
+            ${it.cat!=='clase' && it.estado!=='devuelto' ? `<button class="mini-btn" data-mark="${o.id}|${it.id}">Marcar devuelto</button>` : ''}
+          </div>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+function nombrePromotorKey(nombre){ return (nombre||'').trim().toLowerCase(); }
+function nombrePromotorLindo(nombre){ const n=(nombre||'').trim(); return n ? n.charAt(0).toUpperCase()+n.slice(1).toLowerCase() : ''; }
+function resumenPromotores(orders){
+  const map = {};
+  orders.forEach(o=>{
+    const key = nombrePromotorKey(o.promotor);
+    if(!key) return;
+    if(!map[key]) map[key] = {nombre:nombrePromotorLindo(o.promotor), ventas:0, totalVendido:0, comision:0};
+    map[key].ventas += 1;
+    map[key].totalVendido += o.totalARS;
+    map[key].comision += (o.comisionARS||0);
+  });
+  return Object.values(map).sort((a,b)=>b.totalVendido-a.totalVendido);
+}
+
+function renderHistorial(){
+  const todas = state.orders;
+  const totalNeto = todas.reduce((s,o)=>s+o.totalARS,0);
+  const promotores = resumenPromotores(todas);
+  return `
+  <div class="hist-head">
+    <h2 style="margin:0;">Historial</h2>
+    <button class="ghost-btn" id="exportBtn">${icon('file')} Exportar a Excel</button>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><div class="n">${money(totalNeto,'ARS')}</div><div class="l">Total vendido</div></div>
+  </div>
+  ${promotores.length ? `
+  <div class="card">
+    <h2>Promotores</h2>
+    <div style="overflow-x:auto;">
+    <table>
+      <thead><tr><th>Promotor</th><th>Ventas</th><th>Total vendido</th><th>Comisión</th></tr></thead>
+      <tbody>
+        ${promotores.map(p=>`<tr><td>${p.nombre}</td><td>${p.ventas}</td><td>${money(p.totalVendido,'ARS')}</td><td>${money(p.comision,'ARS')}</td></tr>`).join('')}
+      </tbody>
+    </table>
+    </div>
+  </div>` : ''}
+  <div class="card">
+    <div style="overflow-x:auto;">
+    <table>
+      <thead><tr><th>#</th><th>Cliente</th><th>Ítems</th><th>Total ARS</th><th>Cobrado</th><th>Pago</th><th>Promotor</th><th>Hora</th><th></th></tr></thead>
+      <tbody>
+        ${todas.map(o=>`<tr>
+          <td>${o.numero}</td><td>${o.nombre} ${o.apellido}</td>
+          <td>${o.items.map(i=>i.label).join(', ')}</td><td>${money(o.totalARS,'ARS')}</td>
+          <td>${o.moneda!=='ARS' ? money(o.totalMoneda||0, o.moneda) : '-'}</td>
+          <td>${o.pago}</td><td>${o.promotor||'-'}</td><td>${fmtTime(o.creado)}</td>
+          <td><button class="ghost-btn" data-delorder="${o.id}" style="padding:5px 10px;font-size:0.7rem;">Borrar</button></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    </div>
+  </div>`;
+}
+
+function badge(estado, cond){
+  if(estado==='devuelto' && cond && cond!=='bueno'){
+    return `<span class="badge ${cond}">${condLabel(cond)}</span>`;
+  }
+  const cls = estado==='entregado'?'entregado':estado==='devuelto'?'devuelto':'pend';
+  return `<span class="badge ${cls}">${estadoLabel(estado)}</span>`;
+}
+function emptyState(msg){ return `<div class="empty-state">${msg}</div>`; }
+
+function positionSlider(containerSel, indicatorSel, activeIndex, count, prevIndex){
+  const container = document.querySelector(containerSel);
+  const indicator = document.querySelector(indicatorSel);
+  if(!container||!indicator) return;
+  const cs = getComputedStyle(container);
+  const padL = parseFloat(cs.paddingLeft)||0;
+  const padR = parseFloat(cs.paddingRight)||0;
+  const gap = parseFloat(cs.gap)||0;
+  const totalWidth = container.clientWidth - padL - padR - gap*(count-1);
+  const itemWidth = totalWidth/count;
+  const fromIndex = (prevIndex==null ? activeIndex : prevIndex);
+  indicator.style.transition = 'none';
+  indicator.style.width = itemWidth+'px';
+  indicator.style.transform = `translateX(${fromIndex*(itemWidth+gap)}px)`;
+  indicator.getBoundingClientRect(); // forzar reflow para que el "desde" se pinte antes de animar
+  indicator.style.transition = '';
+  requestAnimationFrame(()=>{
+    indicator.style.transform = `translateX(${activeIndex*(itemWidth+gap)}px)`;
+  });
+}
+
+let lastRecepTabIndex = 0;
+let lastStationTabIndex = 0;
+
+function attachRecepcionEvents(){
+  document.getElementById('exitBtn').addEventListener('click', ()=>{ state.unlocked=false; render(); });
+  document.querySelectorAll('.dock-item').forEach(t=>{ t.addEventListener('click', ()=>{ state.recepTab=t.dataset.tab; render(); }); });
+  const recepTabOrder = ['nuevo','pendientes','historial'];
+  const recepIdx = recepTabOrder.indexOf(state.recepTab);
+  requestAnimationFrame(()=>positionSlider('#dockEl','#dockIndicator', recepIdx, recepTabOrder.length, lastRecepTabIndex));
+  lastRecepTabIndex = recepIdx;
+
+  if(state.recepTab==='nuevo'){
+    document.querySelectorAll('.chk-ropa, .price-ropa, .qty-ropa, #f_descuento, #f_moneda, #f_cambio').forEach(el=>{
+      el.addEventListener('input', calcularTotal);
+      el.addEventListener('change', calcularTotal);
+    });
+    ['ski','snowboard'].forEach(tipo=>{
+      const chk = document.querySelector(`.chk-equipo[data-tipo="${tipo}"]`);
+      const detail = document.querySelector(`.equipo-detail[data-tipo="${tipo}"]`);
+      refreshEquipoPrecio(tipo);
+      chk.addEventListener('change', ()=>{ detail.style.display = chk.checked?'block':'none'; refreshEquipoPrecio(tipo); calcularTotal(); });
+      document.querySelectorAll(`.eq-nivel[data-tipo="${tipo}"], .eq-dias[data-tipo="${tipo}"], .eq-modalidad[data-tipo="${tipo}"]`).forEach(sel=>{
+        sel.addEventListener('change', ()=>{ refreshEquipoPrecio(tipo); calcularTotal(); });
+      });
+      document.querySelector(`.eq-precio[data-tipo="${tipo}"]`).addEventListener('input', calcularTotal);
+      document.querySelector(`.eq-add[data-tipo="${tipo}"]`).addEventListener('change', calcularTotal);
+    });
+    const chkPart = document.getElementById('chk_clase_particular');
+    const detPart = document.getElementById('claseParticularDetail');
+    chkPart.addEventListener('change', ()=>{ detPart.style.display = chkPart.checked?'block':'none'; calcularTotal(); });
+    document.querySelectorAll('#clase_duracion, #clase_personas, #clase_adicionales').forEach(el=>{
+      el.addEventListener('input', calcularTotal);
+      el.addEventListener('change', calcularTotal);
+    });
+    const chkColectiva = document.getElementById('chk_clase_colectiva');
+    const detColectiva = document.getElementById('claseColectivaDetail');
+    chkColectiva.addEventListener('change', ()=>{ detColectiva.style.display = chkColectiva.checked?'block':'none'; calcularTotal(); });
+    document.getElementById('crearVentaBtn').addEventListener('click', crearVenta);
+    calcularTotal();
+  }
+  if(state.recepTab==='pendientes'){
+    document.querySelectorAll('[data-mark]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const [orderId, itemId] = b.dataset.mark.split('|');
+        openConfirmDevueltoModal(orderId, itemId);
+      });
+    });
+  }
+  if(state.recepTab==='historial'){
+    const exp = document.getElementById('exportBtn');
+    if(exp) exp.addEventListener('click', exportCSV);
+    document.querySelectorAll('[data-delorder]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        if(!confirm('¿Borrar este pedido de prueba? Esta acción no se puede deshacer.')) return;
+        state.orders = state.orders.filter(o=>o.id!==b.dataset.delorder);
+        saveOrders(); render(); showToast('Pedido borrado');
+      });
+    });
+  }
+}
+
+async function crearVenta(){
+  const nombre = document.getElementById('f_nombre').value.trim();
+  if(!nombre){ showToast('Falta el nombre del cliente'); return; }
+  const items = [];
+  document.querySelectorAll('.chk-ropa:checked').forEach(chk=>{
+    const price = Number(document.querySelector(`.price-ropa[data-key="${chk.dataset.key}"]`).value)||0;
+    const qty = Math.max(Number(document.querySelector(`.qty-ropa[data-key="${chk.dataset.key}"]`).value)||1, 1);
+    const baseLabel = itemLabel(chk.dataset.key);
+    for(let n=1; n<=qty; n++){
+      const label = qty>1 ? `${baseLabel} · Persona ${n}` : baseLabel;
+      items.push({id:uid(), cat:'ropa', key:chk.dataset.key, label, precio:price, estado:'pendiente', condicion:null, danoDetalle:''});
+    }
+  });
+  items.push(...leerEquipoItems('ski'));
+  items.push(...leerEquipoItems('snowboard'));
+  const clasePart = leerClaseParticular(); if(clasePart) items.push(clasePart);
+  const claseColectiva = leerClaseColectiva(); if(claseColectiva) items.push(claseColectiva);
+  if(items.length===0){ showToast('Elegí al menos un producto'); return; }
+
+  const descuentoPct = Math.min(Number(document.getElementById('f_descuento').value)||0, 100);
+  const moneda = document.getElementById('f_moneda').value;
+  const cambio = moneda==='ARS' ? 1 : (Number(document.getElementById('f_cambio').value)||0);
+  const subtotal = items.reduce((s,i)=>s+i.precio,0);
+  const totalARS = Math.max(subtotal - subtotal*descuentoPct/100, 0);
+  const totalMoneda = moneda==='ARS' ? totalARS : (cambio>0 ? totalARS/cambio : 0);
+  const pago = document.getElementById('f_pago').value;
+  const comisionPct = Number(document.getElementById('f_comision').value)||0;
+  const comisionARS = Math.round(totalARS*comisionPct/100);
+
+  const numero = await nextNumero();
+  const order = {
+    id: uid(), numero,
+    nombre, apellido: document.getElementById('f_apellido').value.trim(),
+    fechaVenta: document.getElementById('f_fecha').value,
+    items,
+    moneda, cambio, descuentoPct,
+    pago,
+    promotor: document.getElementById('f_promotor').value.trim(),
+    comision: comisionPct, comisionARS,
+    horalimite: document.getElementById('f_horalimite').value,
+    totalARS, totalMoneda,
+    bolsaRopa: '', bolsaEsqui: '',
+    creado: nowISO(), cerrado: items.every(i=>i.estado==='devuelto'),
+  };
+  state.orders.push(order);
+  saveOrders();
+  state.recepTab = 'pendientes';
+  render();
+  showToast(`Ticket #${order.numero} creado`);
+}
+
+function exportCSV(){
+  const header = ['#','Nombre','Apellido','Ítems','Total ARS','Moneda','Cobrado en moneda','Pago','Promotor','Comisión %','Comisión $','Hora límite','Fecha','Hora'];
+  const rows = state.orders.map(o=>[o.numero,o.nombre,o.apellido,o.items.map(i=>i.label).join(' / '),o.totalARS,o.moneda,o.moneda!=='ARS'?(o.totalMoneda||0):'',o.pago,o.promotor,o.comision,o.comisionARS||0,o.horalimite,o.creado.slice(0,10),fmtTime(o.creado)]);
+  const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
+  ws['!cols'] = [
+    {wch:5},{wch:16},{wch:16},{wch:36},{wch:12},{wch:9},{wch:14},{wch:14},{wch:16},{wch:12},{wch:12},{wch:12},{wch:12},{wch:9}
+  ];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Ventas');
+  XLSX.writeFile(wb, 'registro_ventas.xlsx');
+  showToast('Excel descargado');
+}
+
+function openConfirmDevueltoModal(orderId, itemId){
+  const app = document.getElementById('app');
+  const order = state.orders.find(o=>o.id===orderId);
+  const item = order.items.find(i=>i.id===itemId);
+  const modal = document.createElement('div');
+  modal.className='modal-bg';
+  modal.innerHTML = `
+    <div class="modal">
+      <h3>Confirmar devolución</h3>
+      <div class="sub" style="color:var(--gray);font-size:0.85rem;font-weight:600;margin-bottom:8px;">¿Confirmás marcar "${item.label}" de ${order.nombre} ${order.apellido} como ya devuelto?</div>
+      <div class="row-actions">
+        <button class="primary-btn" id="confYes">Sí, confirmar</button>
+        <button class="ghost-btn" id="confNo">Cancelar</button>
+      </div>
+    </div>`;
+  app.appendChild(modal);
+  document.getElementById('confNo').addEventListener('click', ()=>modal.remove());
+  document.getElementById('confYes').addEventListener('click', ()=>{
+    item.estado='devuelto'; item.condicion='bueno';
+    checkCerrado(order);
+    saveOrders(); modal.remove(); render(); showToast('Marcado como devuelto');
+  });
+}
+
+function checkCerrado(order){
+  order.cerrado = order.items.every(i=>i.estado==='devuelto');
+}
+
+/* ============================================================
+   ESTACIONES (Ropa / Ski)
+   ============================================================ */
+function renderEstacion(puesto){
+  const label = puesto==='ropa' ? 'Ropa' : 'Ski';
+  const pendientes = ordersForStation(puesto,'pendiente');
+  const paraDevolver = ordersForStation(puesto,'entregado');
+  return `
+  <header class="bar">
+    <div class="title brand">Aurelio Ski <span style="color:var(--gray);font-weight:700;font-size:0.8rem;"> · ${label}</span></div>
+  </header>
+  <main>
+    <div class="switcher" id="switcherEl">
+      <div class="switch-indicator" id="switcherIndicator"></div>
+      <div class="switch-tile ${state.stationTab==='pedidos'?'active':''}" data-tab="pedidos">
+        <div class="st-title">${icon('list')} Pedidos</div>
+        <div class="st-count">${pendientes.length} por entregar</div>
+      </div>
+      <div class="switch-tile ${state.stationTab==='devolver'?'active':''}" data-tab="devolver">
+        <div class="st-title">${icon('clock')} Por devolver</div>
+        <div class="st-count">${paraDevolver.length} sin volver</div>
+      </div>
+    </div>
+    <div class="panel-fixed">
+      <h2>${state.stationTab==='pedidos' ? 'Nuevos pedidos' : 'Equipos sin devolver'}</h2>
+      <div class="hscroll">
+        ${state.stationTab==='pedidos' ? renderPedidosCards(pendientes, puesto) : renderDevolverCards(paraDevolver, puesto)}
+      </div>
+    </div>
+  </main>`;
+}
+
+function ordersForStation(puesto, estado){
+  return state.orders.filter(o=>{
+    const items = o.items.filter(i=>i.cat===puesto);
+    if(items.length===0) return false;
+    if(estado==='pendiente') return items.some(i=>i.estado==='pendiente');
+    if(estado==='entregado') return items.some(i=>i.estado==='entregado') && !items.some(i=>i.estado==='pendiente');
+    return false;
+  });
+}
+
+function renderPedidosCards(orders, puesto){
+  if(orders.length===0) return emptyState('No hay pedidos esperando');
+  return orders.map(o=>{
+    const items = o.items.filter(i=>i.cat===puesto && i.estado==='pendiente');
+    return `
+    <div class="order-card">
+      <div class="oc-top">
+        <div><div class="oc-name">${o.nombre}</div><div class="oc-items">${items.map(i=>i.label).join(', ')}</div></div>
+        <div class="oc-numbox">${o.numero}</div>
+      </div>
+      <button class="oc-action go" data-attend="${o.id}">${icon('check')} Entregado</button>
+    </div>`;
+  }).join('');
+}
+
+function renderDevolverCards(orders, puesto){
+  if(orders.length===0) return emptyState('No falta nadie por devolver');
+  return orders.map(o=>{
+    const items = o.items.filter(i=>i.cat===puesto);
+    const numeroBolsa = puesto==='ropa' ? o.bolsaRopa : o.bolsaEsqui;
+    return `
+    <div class="order-card">
+      <div class="oc-top">
+        <div><div class="oc-name">${o.nombre}</div><div class="oc-items">${items.map(i=>i.label).join(', ')} · N° ${numeroBolsa||'-'}</div></div>
+        <div class="oc-numbox">${o.numero}</div>
+      </div>
+      <button class="oc-action back" data-return="${o.id}">${icon('undo')} Devuelto</button>
+    </div>`;
+  }).join('');
+}
+
+function attachEstacionEvents(puesto){
+  document.querySelectorAll('.switch-tile').forEach(t=>{ t.addEventListener('click', ()=>{ state.stationTab=t.dataset.tab; render(); }); });
+  const stOrder = ['pedidos','devolver'];
+  const stIdx = stOrder.indexOf(state.stationTab);
+  requestAnimationFrame(()=>positionSlider('#switcherEl','#switcherIndicator', stIdx, stOrder.length, lastStationTabIndex));
+  lastStationTabIndex = stIdx;
+  document.querySelectorAll('[data-attend]').forEach(b=>{
+    b.addEventListener('click', ()=>{ const o=state.orders.find(x=>x.id===b.dataset.attend); openBagModal(o, puesto); });
+  });
+  document.querySelectorAll('[data-return]').forEach(b=>{
+    b.addEventListener('click', ()=>{ const o=state.orders.find(x=>x.id===b.dataset.return); openReturnModal(o, puesto); });
+  });
+}
+
+function openBagModal(order, puesto){
+  const app = document.getElementById('app');
+  const modal = document.createElement('div');
+  modal.className='modal-bg';
+  modal.innerHTML = `
+    <div class="modal">
+      <h3>Asignar número</h3>
+      <div class="field"><label>N° de bolsa / equipo</label><input id="bagInput" placeholder="Ej: 24"></div>
+      <div class="row-actions">
+        <button class="primary-btn" id="bagConfirm">${icon('check')} Confirmar entrega</button>
+        <button class="ghost-btn" id="bagCancel">Cancelar</button>
+      </div>
+    </div>`;
+  app.appendChild(modal);
+  document.getElementById('bagCancel').addEventListener('click', ()=>modal.remove());
+  document.getElementById('bagConfirm').addEventListener('click', ()=>{
+    const val = document.getElementById('bagInput').value.trim();
+    order.items.filter(i=>i.cat===puesto && i.estado==='pendiente').forEach(i=>{ i.estado='entregado'; });
+    if(puesto==='ropa') order.bolsaRopa = val; else order.bolsaEsqui = val;
+    saveOrders(); modal.remove(); render(); showToast('Entregado');
+  });
+}
+
+function openReturnModal(order, puesto){
+  const app = document.getElementById('app');
+  const items = order.items.filter(i=>i.cat===puesto && i.estado==='entregado');
+  const modal = document.createElement('div');
+  modal.className='modal-bg';
+  modal.innerHTML = `
+    <div class="modal">
+      <h3>Devolución — ${order.nombre}</h3>
+      <div id="pieceList">
+        ${items.map(i=>`
+          <div class="piece-row" data-item="${i.id}">
+            <div class="pz-label">${i.label}</div>
+            <div class="tri-toggle" data-item-toggle="${i.id}">
+              <div class="tri-opt sel-bueno on" data-val="bueno">Bueno</div>
+              <div class="tri-opt sel-roto" data-val="roto">Roto</div>
+              <div class="tri-opt sel-perdido" data-val="perdido">Perdido</div>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div class="field" style="margin-top:14px;">
+        <label>Detalle · si algo llegó roto o se perdió</label>
+        <textarea id="danoInput" rows="3" placeholder="Ej: guantes con la manga rota"></textarea>
+      </div>
+      <div class="row-actions">
+        <button class="primary-btn" id="retConfirm">${icon('undo')} Confirmar devolución</button>
+        <button class="ghost-btn" id="retCancel">Cancelar</button>
+      </div>
+    </div>`;
+  app.appendChild(modal);
+  document.getElementById('retCancel').addEventListener('click', ()=>modal.remove());
+
+  const selections = {};
+  items.forEach(i=>{ selections[i.id]='bueno'; });
+  modal.querySelectorAll('[data-item-toggle]').forEach(group=>{
+    const itemId = group.dataset.itemToggle;
+    group.querySelectorAll('.tri-opt').forEach(opt=>{
+      opt.addEventListener('click', ()=>{
+        selections[itemId] = opt.dataset.val;
+        group.querySelectorAll('.tri-opt').forEach(o=>o.classList.remove('on'));
+        opt.classList.add('on');
+      });
+    });
+  });
+
+  document.getElementById('retConfirm').addEventListener('click', ()=>{
+    const detalle = document.getElementById('danoInput').value.trim();
+    items.forEach(i=>{
+      i.estado='devuelto';
+      i.condicion = selections[i.id];
+      if(i.condicion!=='bueno') i.danoDetalle = detalle;
+    });
+    checkCerrado(order);
+    saveOrders(); modal.remove(); render(); showToast('Devolución registrada');
+  });
+}
+
+/* ============================================================
+   ARRANQUE
+   ============================================================ */
+initRouting();
+if(['recepcion','ropa','esqui'].includes(state.puesto)){
+  loadLock(state.puesto).then(render);
+} else {
+  render();
+}
+</script>
+</body>
+</html>
